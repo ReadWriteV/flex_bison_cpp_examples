@@ -1,0 +1,22 @@
+%option c++
+%option warn debug
+%option yyclass="Scanner"
+%option noyywrap nounput noinput nodefault
+
+%top{
+#include <cstdint> // for suppressing warning C4005: 'INT8_MIN': macro redefinition
+}
+
+%{
+#include "scanner.hpp"
+
+using namespace yy;
+%}
+
+%%
+
+[^ \t\n\r\f\v]+ { words++; chars += YYLeng(); }
+\n              { chars++; lines++; }
+.               { chars++; }
+
+%%
