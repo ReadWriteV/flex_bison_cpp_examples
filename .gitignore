@@ -1,0 +1,6 @@
+# Editor Specific
+.vscode/
+
+# Build Directory
+out/
+build/
