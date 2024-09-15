@@ -1,0 +1,47 @@
+%option c++
+%option warn debug
+%option yyclass="Scanner"
+%option noyywrap nounput noinput nodefault
+
+%top{
+#include <cstdint> // for suppressing warning C4005: 'INT8_MIN': macro redefinition
+}
+
+%{
+#include "scanner.hpp"
+#include "parser.hpp"
+
+// Code run each time a pattern is matched.
+#define YY_USER_ACTION  loc.columns(YYLeng());
+%}
+
+NUMBER          ([0-9]+)
+WHITESPACE      ([ \t]+)
+LINE_COMMENT    ("//"[^\n]*)
+
+%%
+
+%{
+    loc.step();
+%}
+
+\n              { loc.lines(1); loc.step(); return yy::Parser::make_EOL(loc); }
+{WHITESPACE}    { loc.step(); }
+
+"+"             { return yy::Parser::make_ADD(loc); }
+"-"             { return yy::Parser::make_SUB(loc); }
+"*"             { return yy::Parser::make_MUL(loc); }
+"/"             { return yy::Parser::make_DIV(loc); }
+"|"             { return yy::Parser::make_ABS(loc); }
+"("             { return yy::Parser::make_OP(loc); }
+")"             { return yy::Parser::make_CP(loc); }
+
+{NUMBER}        { return yy::Parser::make_NUMBER(std::atoi(YYText()), loc); }
+
+{LINE_COMMENT}
+
+<<EOF>>         { return yy::Parser::make_YYEOF(loc); }
+
+.               { return yy::Parser::make_YYUNDEF(loc); }
+
+%%
