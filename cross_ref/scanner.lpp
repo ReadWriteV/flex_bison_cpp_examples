@@ -1,0 +1,199 @@
+%option c++
+%option yyclass="Scanner"
+%option yylineno warn debug batch case-insensitive
+%option noyywrap nounput noinput nodefault
+
+%top{
+#include <cstdint> // for suppressing warning C4005: 'INT8_MIN': macro redefinition
+}
+
+%{
+#include "scanner.hpp"
+
+#include <print>
+
+using namespace yy;
+%}
+
+%x COMMENT
+%x IFILE
+
+/* Universal Character Name */
+UCN     (\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})
+/* float exponent */
+EXP     ([Ee][-+]?[0-9]+)
+/* integer length */
+ILEN    ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
+
+%%
+
+ /* comments */
+"/*"                            { BEGIN(COMMENT); }
+<COMMENT>"*/"                   { BEGIN(INITIAL); }
+<COMMENT>([^*]|\n)+|.
+<COMMENT><<EOF>>                { std::println("{}:{}: Unterminated comment", cur_filename, lineno()); return 0; }
+
+ /* C++ comment, a common extension */
+"//".*\n
+
+ /* declaration keywords */
+_Bool |
+_Complex |
+_Imaginary |
+auto |
+bool |
+char |
+const |
+double |
+enum |
+extern |
+float |
+inline |
+int |
+long |
+register |
+restrict |
+short |
+signed |
+static |
+struct |
+typedef |
+union |
+unsigned |
+void |
+volatile { defining = true; }
+
+ /* keywords */
+break
+case
+continue
+default
+do
+else
+for
+goto
+if
+return
+sizeof
+switch
+while
+
+ /* integers */
+0[0-7]*{ILEN}?
+[1-9][0-9]*{ILEN}?
+0[Xx][0-9a-fA-F]+{ILEN}?
+
+ /* decimal float */
+([0-9]*\.[0-9]+|[0-9]+\.){EXP}?[flFL]?
+[0-9]+{EXP}[flFL]?
+
+ /* hex float */
+0[Xx]([0-9a-fA-F]*\.[0-9a-fA-F]+|[0-9a-fA-F]+\.?)[Pp][-+]?[0-9]+[flFL]?
+
+ /* char const */
+\'([^'\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})+\'
+
+ /* string literal */
+L?\"([^"\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})*\"
+
+ /* punctuators */
+"{"|"<%"|";"         { defining = false; }
+
+"["|"]"|"("|")"|"{"|"}"|"."|"->"
+"++"|"--"|"&"|"*"|"+"|"-"|"~"|"!"
+"/"|"%"|"<<"|">>"|"<"|">"|"<="|">="|"=="|"!="|"^"|"|"|"&&"|"||"
+"?"|":"|";"|"..."
+"="|"*="|"/="|"%="|"+="|"-="|"<<="|">>="|"&="|"^=""|="
+","|"#"|"##"
+"<:"|":>"|"%>"|"%:"|"%:%:"
+
+ /* identifier */
+([_a-zA-Z]|{UCN})([_a-zA-Z0-9]|{UCN})*  { add_ref(YYText(), cur_filename, lineno(), defining); }
+
+ /* whitespace */
+[ \t\n]+
+
+ /* continued line */
+\\$
+
+ /* some preprocessor stuff */
+"#"" "*if.*\n
+"#"" "*else.*\n
+"#"" "*endif.*\n
+"#"" "*define.*\n
+"#"" "*line.*\n
+
+ /* recognize an include */
+^"#"[ \t]*include[ \t]*[\"<]    { BEGIN(IFILE); }
+
+<IFILE>[^>\"]+                  { handle_inc_file(); }
+                             
+<IFILE>.|\n                     { std::println("{}:{:} bad include line", cur_filename, lineno()); BEGIN(INITIAL); }
+
+<<EOF>>                         { if(!exit_file()) { yyterminate(); } }
+
+ /* invalid character */
+.                               { std::println("{}:{}: Mystery character '{}'", cur_filename, lineno(), YYText()); }
+
+%%
+
+void yy::Scanner::handle_inc_file()
+{
+
+    int c{};
+    while ((c == yyinput() && c != '\n'))
+        ;
+    enter_file(YYText());
+    BEGIN(INITIAL);
+}
+
+bool yy::Scanner::enter_file(std::string_view filename)
+{
+    std::println("enter file: {}", filename);
+
+    std::ifstream file{filename.data()};
+    if (file.fail())
+    {
+        std::println(stderr, "open file {} failed", filename);
+        return false;
+    }
+
+    file_state s;
+    s.name = filename;
+    s.file = std::move(file);
+    s.lineno = lineno();
+
+    cur_filename = filename;
+    yylineno = 1;
+
+    file_states.push(std::move(s));
+    auto bs = yy_create_buffer(file_states.top().file, YY_BUF_SIZE);
+
+    yypush_buffer_state(bs);
+    
+    return true;
+}
+
+bool yy::Scanner::exit_file()
+{
+    if (file_states.empty())
+    {
+        return false;
+    }
+
+
+    std::println("exit file");
+    yypop_buffer_state();
+
+    yylineno = file_states.top().lineno;
+    file_states.pop();
+
+    if (file_states.empty())
+    {
+        return false;
+    }
+
+    cur_filename = file_states.top().name;
+
+    return true;
+}
