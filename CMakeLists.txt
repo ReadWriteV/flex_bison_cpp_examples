@@ -12,3 +12,4 @@ find_package(BISON REQUIRED)
 
 add_subdirectory(wc)
 add_subdirectory(calc)
+add_subdirectory(inc_finder)

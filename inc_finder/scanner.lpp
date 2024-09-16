@@ -1,0 +1,86 @@
+%option c++
+%option yyclass="Scanner"
+%option yylineno warn debug batch
+%option noyywrap nounput noinput nodefault
+
+%top{
+#include <cstdint> // for suppressing warning C4005: 'INT8_MIN': macro redefinition
+}
+
+%{
+#include "scanner.hpp"
+
+#include <print>
+
+using namespace yy;
+%}
+
+%x IFILE
+
+%%
+
+^"#"[ \t]*include[ \t]*[\"<]   { BEGIN(IFILE); }
+
+<IFILE>[^ \t\n\">]+             { handle_inc_file(); }
+                             
+<IFILE>.|\n                     { std::println("{:4} bad include line", lineno()); yyterminate(); }
+
+<<EOF>>                         { if(!exit_file()) { yyterminate(); } }
+
+^.                              { std::print("{:4} {}", lineno(), YYText()); }
+^\n                             { std::print("{:4} {}", lineno() - 1, YYText()); }
+\n                              { ECHO; }
+.                               { ECHO; }
+
+%%
+
+int yy::Scanner::handle_inc_file()
+{
+
+    int c{};
+    while ((c == yyinput() && c != '\n'))
+        ;
+    if (!enter_file(YYText()))
+    {
+        yyterminate();
+    }
+    BEGIN(INITIAL);
+    return 0;
+}
+
+bool yy::Scanner::enter_file(std::string_view filename)
+{
+    std::println("enter file: {}", filename);
+
+    std::ifstream file{filename.data()};
+    if (file.fail())
+    {
+        std::println(stderr, "open file {} failed", filename);
+        return false;
+    }
+
+    files.push(std::move(file));
+    auto bs = yy_create_buffer(files.top(), YY_BUF_SIZE);
+
+    yypush_buffer_state(bs);
+    
+    return true;
+}
+
+bool yy::Scanner::exit_file()
+{
+    if (files.empty())
+    {
+        return false;
+    }
+    std::println("exit file");
+    yypop_buffer_state();
+    files.pop();
+
+    if (files.empty())
+    {
+        return false;
+    }
+
+    return true;
+}
