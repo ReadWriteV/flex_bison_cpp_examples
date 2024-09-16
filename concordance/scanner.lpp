@@ -1,0 +1,43 @@
+%option c++
+%option yyclass="Scanner"
+%option yylineno warn debug batch case-insensitive
+%option noyywrap nounput noinput nodefault
+
+%top{
+#include <cstdint> // for suppressing warning C4005: 'INT8_MIN': macro redefinition
+}
+
+%{
+#include "scanner.hpp"
+
+#include <print>
+
+using namespace yy;
+%}
+
+%%
+
+ /* skip common words */
+a |
+an |
+and |
+are |
+as |
+at |
+be |
+but |
+for |
+in |
+is |
+it |
+of |
+on |
+or |
+that |
+the |
+this |
+to                  /* ignore */
+[a-z]+(\'(s|t))?    { add_ref(YYText(), cur_filename, lineno(), 0); }
+.|\n                /* ignore everything else */
+
+%%
