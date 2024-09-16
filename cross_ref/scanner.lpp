@@ -1,6 +1,6 @@
 %option c++
 %option yyclass="Scanner"
-%option yylineno warn debug batch case-insensitive
+%option warn debug batch yylineno case-insensitive
 %option noyywrap nounput noinput nodefault
 
 %top{
@@ -141,7 +141,7 @@ void yy::Scanner::handle_inc_file()
 {
 
     int c{};
-    while ((c == yyinput() && c != '\n'))
+    while ((c = yyinput() && c != '\n'))
         ;
     enter_file(YYText());
     BEGIN(INITIAL);
