@@ -72,7 +72,10 @@ yy::Parser::symbol_type yylex(yy::Scanner &scanner) {
 %left "*" "/"
 %nonassoc "|" UMINUS
 
-/* %printer { yyo << $$; } <*>; */
+%printer { yyo << "FnCall::builtin_func: " << std::to_underlying($$); } <FnCall::builtin_func>
+%printer { yyo << "Node::type: " << std::to_underlying($$); } <Node::type>
+%printer { yyo << "symbol_list_type, size: " << $$.size(); } <symbol_list_type>
+%printer { yyo << $$; } <*>;
 
 %start calclist
 
