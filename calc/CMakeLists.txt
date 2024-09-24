@@ -16,6 +16,7 @@ ADD_FLEX_BISON_DEPENDENCY(scanner parser)
 
 add_executable(${target_name}
     main.cpp
+    ast.cpp
     ${FLEX_scanner_OUTPUTS}
     ${BISON_parser_OUTPUTS}
 )

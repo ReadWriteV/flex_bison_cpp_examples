@@ -13,5 +13,6 @@ int main(int argc, char const *argv[])
     yy::Parser parser{scanner};
     parser.set_debug_level(debug_flag);
 
+    std::print("> ");
     return parser();
 }

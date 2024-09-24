@@ -11,11 +11,15 @@
 #include "scanner.hpp"
 #include "parser.hpp"
 
+#include <print>
+
 // Code run each time a pattern is matched.
 #define YY_USER_ACTION  loc.columns(YYLeng());
 %}
 
-NUMBER          ([0-9]+)
+EXP             ([Ee][-+]?[0-9]+)
+NUMBER          ([0-9]+"."[0-9]*{EXP}?|"."?[0-9]+{EXP}?)
+NAME            ([a-zA-Z][a-zA-Z0-9]*)
 WHITESPACE      ([ \t]+)
 LINE_COMMENT    ("//"[^\n]*)
 
@@ -28,6 +32,9 @@ LINE_COMMENT    ("//"[^\n]*)
 \n              { loc.lines(1); loc.step(); return yy::Parser::make_EOL(loc); }
 {WHITESPACE}    { loc.step(); }
 
+","             { return yy::Parser::make_COMMA(loc); }
+";"             { return yy::Parser::make_SIMECOLON(loc); }
+"="             { return yy::Parser::make_ASSIGN(loc); }
 "+"             { return yy::Parser::make_ADD(loc); }
 "-"             { return yy::Parser::make_SUB(loc); }
 "*"             { return yy::Parser::make_MUL(loc); }
@@ -36,7 +43,30 @@ LINE_COMMENT    ("//"[^\n]*)
 "("             { return yy::Parser::make_OP(loc); }
 ")"             { return yy::Parser::make_CP(loc); }
 
-{NUMBER}        { return yy::Parser::make_NUMBER(std::atoi(YYText()), loc); }
+">"             { return yy::Parser::make_CMP(Node::type::gt, loc); }
+"<"             { return yy::Parser::make_CMP(Node::type::lt, loc); }
+"<>"            { return yy::Parser::make_CMP(Node::type::neq, loc); }
+"=="            { return yy::Parser::make_CMP(Node::type::eq, loc); }
+">="            { return yy::Parser::make_CMP(Node::type::gte, loc); }
+"<="            { return yy::Parser::make_CMP(Node::type::lte, loc); }
+
+"if"            { return yy::Parser::make_IF(loc); }
+"then"          { return yy::Parser::make_THEN(loc); }
+"else"          { return yy::Parser::make_ELSE(loc); }
+"while"         { return yy::Parser::make_WHILE(loc); }
+"do"            { return yy::Parser::make_DO(loc); }
+"let"           { return yy::Parser::make_LET(loc); }
+
+"sqrt"          { return yy::Parser::make_FUNC(FnCall::builtin_func::sqrt, loc); }
+"exp"           { return yy::Parser::make_FUNC(FnCall::builtin_func::exp, loc); }
+"log"           { return yy::Parser::make_FUNC(FnCall::builtin_func::log, loc); }
+"print"         { return yy::Parser::make_FUNC(FnCall::builtin_func::print, loc); }
+
+{NAME}          { return yy::Parser::make_NAME(YYText(), loc);  }
+
+{NUMBER}        { return yy::Parser::make_NUMBER(std::atof(YYText()), loc); }
+
+\\\n            { std::print("c> "); }
 
 {LINE_COMMENT}
 

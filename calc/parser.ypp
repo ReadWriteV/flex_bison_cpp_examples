@@ -3,6 +3,7 @@
 
 %define api.parser.class {Parser}
 %define api.value.type variant
+%define api.value.automove true
 %define api.token.raw
 %define api.token.constructor
 
@@ -17,6 +18,10 @@
 
 %code requires
 {
+#include "ast.hpp"
+
+#include <string>
+
 namespace yy {
     class Scanner;
 }
@@ -32,6 +37,10 @@ yy::Parser::symbol_type yylex(yy::Scanner &scanner) {
 }
 }
 
+%token COMMA ","
+%token SIMECOLON ";"
+
+%token ASSIGN "="
 %token ADD "+"
 %token SUB "-"
 %token MUL "*"
@@ -42,37 +51,77 @@ yy::Parser::symbol_type yylex(yy::Scanner &scanner) {
 %token OP "("
 %token CP ")"
 
-%token <int> NUMBER
+%token IF "if"
+%token THEN "then"
+%token ELSE "else"
+%token WHILE "while"
+%token DO "do"
+%token LET "let"
 
-%nterm <int> exp factor term
+%token <double> NUMBER
+%token <std::string> NAME
+%token <FnCall::builtin_func> FUNC
+%token <Node::type> CMP
 
-%printer { yyo << $$; } <*>;
+%nterm <ast_type> exp stmt list explist
+%nterm <symbol_list_type> symlist
+
+%nonassoc CMP
+%right "="
+%left "+" "-"
+%left "*" "/"
+%nonassoc "|" UMINUS
+
+/* %printer { yyo << $$; } <*>; */
+
+%start calclist
 
 %%
 
 calclist:
     %empty { /* empty */ }
-|   calclist "\n" { /* empty */ }
-|   calclist exp "\n" { std::println(" = {}", $2); }
+|   calclist "\n" { std::print("> "); }
+|   calclist stmt "\n" { std::print("= {:4.4f}\n> ", $2->eval()); }
+|   calclist LET NAME "(" symlist ")" "=" list "\n" { auto name = $3; make_def(name, $5, $8); std::print("Defined {}\n> ", name); }
+|   calclist error "\n" { yyerrok; std::print("> "); }
+;
+
+stmt:
+    "if" exp "then" list { $$ = make_branch($2, $4); }
+|   "if" exp "then" list "else" list { $$ = make_branch($2, $4, $6); }
+|   "while" exp "do" list { $$ = make_loop($2, $4); }
+|   exp
+;
+
+list:
+    %empty { $$ = nullptr; }
+|   stmt ";" list { if ($3 == nullptr) { $$ = $1; } else { $$ = make_node(Node::type::list, $1, $3); } }
 ;
 
 exp:
-    factor { $$ = $1; }
-|   exp "+" factor { $$ = $1 + $3; }
-|   exp "-" factor { $$ = $1 - $3; }
-|   exp "|" factor { $$ = $1 | $3; }
-;
-
-factor:
-    term  { $$ = $1; }
-|   factor "*" term { $$ = $1 * $3; }
-|   factor "/" term { $$ = $1 / $3; }
-;
-
-term:
-    NUMBER { $$ = $1; }
-|   "|" term { $$ = std::abs($2); }
+    exp CMP exp { $$ = make_node($2, $1, $3); }
+|   exp "+" exp { $$ = make_node(Node::type::add, $1, $3); }
+|   exp "-" exp { $$ = make_node(Node::type::sub, $1, $3); }
+|   exp "*" exp { $$ = make_node(Node::type::mul, $1, $3); }
+|   exp "/" exp { $$ = make_node(Node::type::div, $1, $3); }
+|   "|" exp { $$ = make_node(Node::type::abs, $2); }
 |   "(" exp ")" { $$ = $2; }
+|   "-" exp %prec UMINUS { $$ = make_node(Node::type::minus, $2); }
+|   NUMBER { $$ = make_number($1); }
+|   NAME { $$ = make_ref($1); }
+|   NAME "=" exp { $$ = make_asgn($1, $3); }
+|   FUNC "(" explist ")" { $$ = make_func($1, $3); }
+|   NAME "(" explist ")" { $$ = make_call($1, $3); }
+;
+
+explist:
+    exp
+|   exp "," explist { $$ = make_node(Node::type::list, $1, $3); }
+;
+
+symlist:
+    NAME { $$ = make_symlist($1); }
+|   NAME "," symlist { $$ = make_symlist($1, $3); }
 ;
 
 %%
