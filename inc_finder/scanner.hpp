@@ -21,7 +21,7 @@ namespace yy
         bool exit_file();
 
     private:
-        int handle_inc_file();
+        void handle_inc_file();
 
     private:
         std::stack<std::ifstream> files;

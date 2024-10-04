@@ -139,9 +139,8 @@ L?\"([^"\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})*\"
 
 void yy::Scanner::handle_inc_file()
 {
-
     int c{};
-    while ((c = yyinput() && c != '\n'))
+    while ((c = yyinput()) && c != '\n')
         ;
     enter_file(YYText());
     BEGIN(INITIAL);
