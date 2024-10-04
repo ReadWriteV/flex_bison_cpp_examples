@@ -29,9 +29,9 @@ double Node::eval() const
     case lte:
         return left->eval() <= right->eval();
     case gt:
-        return left->eval() >= right->eval();
+        return left->eval() > right->eval();
     case gte:
-        return left->eval() <= right->eval();
+        return left->eval() >= right->eval();
     case eq:
         return left->eval() == right->eval();
     case neq:
