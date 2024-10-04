@@ -339,6 +339,8 @@ yy::Parser::symbol_type yylex(yy::Scanner &scanner) {
 stmt_list:
     stmt ";"
 |   stmt_list stmt ";"
+|   error ";"
+|   stmt_list error ";"
 ;
 
 expr:
