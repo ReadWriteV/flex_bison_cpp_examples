@@ -104,7 +104,7 @@ END                 { return yy::Parser::make_END(loc); }
 ENUM                { return yy::Parser::make_ENUM(loc); }
 ESCAPED             { return yy::Parser::make_ESCAPED(loc); }
 EXISTS              { return yy::Parser::make_EXISTS(0, loc); }
-NOT[ \t\n]+EXISTS   { return yy::Parser::make_EXISTS(1, loc); }
+NOT[ \t]+EXISTS     { return yy::Parser::make_EXISTS(1, loc); }
 EXIT                { return yy::Parser::make_EXIT(loc); }
 EXPLAIN             { return yy::Parser::make_EXPLAIN(loc); }
 FETCH               { return yy::Parser::make_FETCH(loc); }
@@ -167,7 +167,7 @@ NO_WRITE_TO_BINLOG  { return yy::Parser::make_NO_WRITE_TO_BINLOG(loc); }
 NULL                { return yy::Parser::make_NULLX(loc); }
 NUMBER              { return yy::Parser::make_NUMBER(loc); }
 ON                  { return yy::Parser::make_ON(loc); }
-ON[ \t\n]+DUPLICATE { return yy::Parser::make_ONDUPLICATE(loc); }
+ON[ \t]+DUPLICATE   { return yy::Parser::make_ONDUPLICATE(loc); }
 OPTIMIZE            { return yy::Parser::make_OPTIMIZE(loc); }
 OPTION              { return yy::Parser::make_OPTION(loc); }
 OPTIONALLY          { return yy::Parser::make_OPTIONALLY(loc); }
