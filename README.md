@@ -143,7 +143,7 @@ The following tools are required to build the examples.
 ```bash
 cd flex_bison_cpp_examples
 
-cmake --preset default
+cmake -S . -B build
 
 cmake --build out/build/default
 ```
