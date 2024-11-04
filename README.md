@@ -110,7 +110,7 @@ enter_file      .\cross_ref\main.cpp:20
 
 ### sql_analyzer
 
-A simple program that translate SQL statements into Reverse Polish Notation (RPN).
+A simple program that translates SQL statements into Reverse Polish Notation (RPN).
 
 ``` bash
 sql_analyzer
@@ -148,7 +148,7 @@ cmake -S . -B build
 cmake --build out/build/default
 ```
 
-## Using Code Examples
+## Copyright Notice (from the book)
 
 > This book is here to help you get your job done. In general, you may use the code in
 > this book in your programs and documentation. You do not need to contact us for
@@ -158,7 +158,7 @@ cmake --build out/build/default
 > require permission. Answering a question by citing this book and quoting example
 > code does not require permission. Incorporating a significant amount of example code
 > from this book into your product’s documentation does require permission.
-> *<p align="right">flex & bison</p>*
+> *<p align="right">flex & bison -- Using Code Examples</p>*
 
 ## Acknowledgement
 
