@@ -145,7 +145,7 @@ cd flex_bison_cpp_examples
 
 cmake -S . -B build
 
-cmake --build out/build/default
+cmake --build build
 ```
 
 ## Copyright Notice (from the book)
