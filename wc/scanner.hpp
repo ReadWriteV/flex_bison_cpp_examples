@@ -14,7 +14,7 @@ namespace yy
     public:
         int yylex() override;
 
-        void report(std::string_view filename = "") const
+        void report(std::string_view filename = "stdin") const
         {
             std::println("{:8}{:8}{:8} {}", lines, words, chars, filename);
         }
