@@ -165,9 +165,12 @@ Symbol *get_symbol(std::string name)
     return iter->second.get();
 }
 
-ast_type
-make_node(Node::type op, ast_type left, ast_type right)
+ast_type make_node(Node::type op, ast_type left, ast_type right)
 {
+    if (right == nullptr)
+    {
+        return std::move(left);
+    }
     return std::make_unique<Node>(op, std::move(left), std::move(right));
 }
 
@@ -176,20 +179,17 @@ ast_type make_func(FnCall::builtin_func type, ast_type arg)
     return std::make_unique<FnCall>(type, std::move(arg));
 }
 
-ast_type
-make_call(std::string name, ast_type arg)
+ast_type make_call(std::string name, ast_type arg)
 {
     return std::make_unique<UFnCall>(std::move(name), std::move(arg));
 }
 
-ast_type
-make_branch(ast_type cond, ast_type then_br, ast_type else_br)
+ast_type make_branch(ast_type cond, ast_type then_br, ast_type else_br)
 {
     return std::make_unique<Branch>(std::move(cond), std::move(then_br), std::move(else_br));
 }
 
-ast_type
-make_loop(ast_type cond, ast_type body)
+ast_type make_loop(ast_type cond, ast_type body)
 {
     return std::make_unique<Loop>(std::move(cond), std::move(body));
 }

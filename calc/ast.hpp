@@ -134,20 +134,15 @@ struct SymAsgn final : public Value
 
 void make_def(std::string name, symbol_list_type symlist, ast_type body);
 
-ast_type
-make_node(Node::type op, ast_type left, ast_type right = nullptr);
+ast_type make_node(Node::type op, ast_type left, ast_type right = nullptr);
 
-ast_type
-make_func(FnCall::builtin_func type, ast_type arg);
+ast_type make_func(FnCall::builtin_func type, ast_type arg);
 
-ast_type
-make_call(std::string name, ast_type arg);
+ast_type make_call(std::string name, ast_type arg);
 
-ast_type
-make_branch(ast_type cond, ast_type then_br, ast_type else_br = nullptr);
+ast_type make_branch(ast_type cond, ast_type then_br, ast_type else_br = nullptr);
 
-ast_type
-make_loop(ast_type cond, ast_type body);
+ast_type make_loop(ast_type cond, ast_type body);
 
 ast_type make_number(double v);
 
